@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Marketing Analytics — MN3 Labs</title>
+    <title>NexaData Analytics — MN3 Labs</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -217,14 +217,6 @@
 
         .tab svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.5; }
         .tab.active-tab.sheets-active svg { stroke: var(--sheets-green); }
-
-        .tab.active-tab.db-active {
-            background: rgba(77, 172, 255, 0.08);
-            color: var(--db-blue);
-            border-color: rgba(77, 172, 255, 0.2);
-            box-shadow: 0 0 15px rgba(77, 172, 255, 0.05);
-        }
-        .tab.active-tab.db-active svg { stroke: var(--db-blue); }
 
         .tab.active-tab.prompt-active {
             background: rgba(255, 159, 67, 0.08);
@@ -450,10 +442,6 @@
         .btn-submit.sheets-btn::before { background: linear-gradient(135deg, rgba(52, 168, 83, 0.12), transparent); }
         .btn-submit.sheets-btn:hover:not(:disabled) { box-shadow: 0 0 30px rgba(52, 168, 83, 0.15), 0 0 60px rgba(52, 168, 83, 0.05); text-shadow: 0 0 10px rgba(52, 168, 83, 0.5); }
 
-        .btn-submit.db-btn { border-color: var(--db-blue); color: var(--db-blue); background: rgba(77, 172, 255, 0.06); }
-        .btn-submit.db-btn::before { background: linear-gradient(135deg, rgba(77, 172, 255, 0.12), transparent); }
-        .btn-submit.db-btn:hover:not(:disabled) { box-shadow: 0 0 30px rgba(77, 172, 255, 0.15), 0 0 60px rgba(77, 172, 255, 0.05); text-shadow: 0 0 10px rgba(77, 172, 255, 0.5); }
-
         .btn-submit.prompt-btn { border-color: var(--prompt-orange); color: var(--prompt-orange); background: rgba(255, 159, 67, 0.06); }
         .btn-submit.prompt-btn::before { background: linear-gradient(135deg, rgba(255, 159, 67, 0.12), transparent); }
         .btn-submit.prompt-btn:hover:not(:disabled) { box-shadow: 0 0 30px rgba(255, 159, 67, 0.15), 0 0 60px rgba(255, 159, 67, 0.05); text-shadow: 0 0 10px rgba(255, 159, 67, 0.5); }
@@ -535,47 +523,12 @@
         .spinner { width: 16px; height: 16px; border: 2px solid rgba(0, 255, 200, 0.2); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
         .spinner.show { display: block; }
         .spinner.sheets-spinner { border-color: rgba(52, 168, 83, 0.2); border-top-color: var(--sheets-green); }
-        .spinner.db-spinner { border-color: rgba(77, 172, 255, 0.2); border-top-color: var(--db-blue); }
 
-        /* === DB FORM === */
-        .db-form { padding: 8px 0; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .db-input {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(77, 172, 255, 0.04);
-            border: 1.5px solid rgba(77, 172, 255, 0.15);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            outline: none;
-            transition: all 0.3s;
-        }
-        .db-input::placeholder { color: var(--text-muted); font-family: 'Inter', sans-serif; }
-        .db-input:focus { border-color: rgba(77, 172, 255, 0.5); box-shadow: 0 0 20px rgba(77, 172, 255, 0.08); background: rgba(77, 172, 255, 0.06); }
-
-        .db-select {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(77, 172, 255, 0.04);
-            border: 1.5px solid rgba(77, 172, 255, 0.15);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
-            outline: none;
-            transition: all 0.3s;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234dacff' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-        }
-        .db-select:focus { border-color: rgba(77, 172, 255, 0.5); box-shadow: 0 0 20px rgba(77, 172, 255, 0.08); }
-        .db-select option { background: var(--bg-card); color: var(--text-primary); }
-
-        .db-label {
+        /* === INLINE PROMPT (inside Upload & Sheets tabs) === */
+        .inline-prompt { margin-top: 20px; }
+        .inline-prompt-label {
             display: block;
             font-size: 11px;
             font-weight: 700;
@@ -584,48 +537,41 @@
             letter-spacing: 1.5px;
             margin-bottom: 8px;
         }
-
-        .db-input-group { margin-bottom: 16px; }
-        .db-input-row { display: flex; gap: 12px; }
-        .db-input-row .db-input-group { flex: 1; }
-
-        .db-hint {
+        .inline-prompt-textarea {
+            width: 100%;
+            min-height: 90px;
+            padding: 14px 16px;
+            background: rgba(0, 255, 200, 0.02);
+            border: 1.5px solid rgba(0, 255, 200, 0.12);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            line-height: 1.6;
+            outline: none;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+        .inline-prompt-textarea::placeholder { color: var(--text-muted); }
+        .inline-prompt-textarea:focus {
+            border-color: rgba(0, 255, 200, 0.35);
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.06);
+            background: rgba(0, 255, 200, 0.04);
+        }
+        .inline-prompt-textarea.sheets-prompt {
+            background: rgba(52, 168, 83, 0.02);
+            border-color: rgba(52, 168, 83, 0.12);
+        }
+        .inline-prompt-textarea.sheets-prompt:focus {
+            border-color: rgba(52, 168, 83, 0.35);
+            box-shadow: 0 0 20px rgba(52, 168, 83, 0.06);
+            background: rgba(52, 168, 83, 0.04);
+        }
+        .inline-prompt-hint {
             font-size: 11px;
             color: var(--text-muted);
             margin-top: 6px;
-            line-height: 1.5;
         }
-        .db-hint code {
-            background: rgba(77, 172, 255, 0.08);
-            border: 1px solid rgba(77, 172, 255, 0.1);
-            padding: 1px 6px;
-            border-radius: 4px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
-            color: var(--db-blue);
-        }
-
-        .db-status-bar {
-            display: none;
-            margin-top: 16px;
-            padding: 12px 16px;
-            background: rgba(77, 172, 255, 0.04);
-            border: 1px solid rgba(77, 172, 255, 0.15);
-            border-radius: 10px;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-            color: var(--db-blue);
-        }
-        .db-status-bar.show { display: flex; }
-        .db-status-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--db-blue);
-            box-shadow: 0 0 8px var(--db-blue);
-            animation: blink 1.5s ease-in-out infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* === PROGRESS === */
         .progress-wrap { display: none; margin-top: 20px; }
@@ -711,8 +657,8 @@
         <!-- HERO -->
         <div class="hero">
             <div class="hero-label"><div class="dot"></div> Systeme actif</div>
-            <h1><span class="gradient">Data Marketing<br>Analytics</span></h1>
-            <p>Uploadez vos KPIs marketing ou connectez votre Google Sheet. Trois agents IA analysent vos donnees, detectent les anomalies et generent votre rapport.</p>
+            <h1><span class="gradient">NexaData<br>Analytics</span></h1>
+            <p>Uploadez vos donnees CRM, connectez votre Google Sheet ou decrivez votre analyse. Trois agents IA analysent vos performances commerciales et generent votre rapport.</p>
         </div>
 
         <!-- STATS -->
@@ -733,10 +679,6 @@
                 <button class="tab" id="tabSheets" onclick="switchTab('sheets')">
                     <svg class="tab-icon-sheets" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="9" x2="21" y2="9" stroke-linecap="round"/><line x1="3" y1="15" x2="21" y2="15" stroke-linecap="round"/><line x1="9" y1="3" x2="9" y2="21" stroke-linecap="round"/><line x1="15" y1="3" x2="15" y2="21" stroke-linecap="round"/></svg>
                     Sheets
-                </button>
-                <button class="tab" id="tabDb" onclick="switchTab('db')">
-                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Database
                 </button>
                 <button class="tab" id="tabPrompt" onclick="switchTab('prompt')">
                     <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -769,6 +711,12 @@
                         <div class="file-card-size" id="fileSize"></div>
                     </div>
                     <button class="file-card-remove" id="fileRemove">&times;</button>
+                </div>
+
+                <div class="inline-prompt">
+                    <label class="inline-prompt-label">Prompt d'analyse (optionnel)</label>
+                    <textarea class="inline-prompt-textarea" id="filePrompt" placeholder="Ex: Analyse les ventes par region, identifie les top commerciaux et donne les 3 actions prioritaires..."></textarea>
+                    <div class="inline-prompt-hint">Decrivez ce que vous attendez de l'analyse. Laissez vide pour une analyse CRM complete automatique.</div>
                 </div>
 
                 <button class="btn-submit" id="submitBtnFile" disabled>
@@ -809,72 +757,19 @@
                     </div>
                 </div>
 
+                <div class="inline-prompt">
+                    <label class="inline-prompt-label">Prompt d'analyse (optionnel)</label>
+                    <textarea class="inline-prompt-textarea sheets-prompt" id="sheetsPrompt" placeholder="Ex: Compare les performances des commerciaux sur les 3 derniers mois et identifie les tendances..."></textarea>
+                    <div class="inline-prompt-hint">Decrivez ce que vous attendez de l'analyse. Laissez vide pour une analyse CRM complete automatique.</div>
+                </div>
+
                 <button class="btn-submit sheets-btn" id="submitBtnSheets" disabled>
                     <span id="btnTextSheets">Lancer l'analyse</span>
                     <div class="spinner sheets-spinner" id="btnSpinnerSheets"></div>
                 </button>
             </div>
 
-            <!-- TAB 3: DATABASE -->
-            <div class="tab-content" id="contentDb">
-                <div class="db-form">
-                    <div class="db-input-group">
-                        <label class="db-label">Type de base de donnees</label>
-                        <select class="db-select" id="dbType" onchange="validateDb()">
-                            <option value="">-- Selectionnez --</option>
-                            <option value="postgresql">PostgreSQL</option>
-                            <option value="mysql">MySQL</option>
-                            <option value="mssql">Microsoft SQL Server</option>
-                            <option value="mongodb">MongoDB</option>
-                        </select>
-                    </div>
-
-                    <div class="db-input-row">
-                        <div class="db-input-group">
-                            <label class="db-label">Host</label>
-                            <input type="text" class="db-input" id="dbHost" placeholder="db.exemple.com" oninput="validateDb()">
-                        </div>
-                        <div class="db-input-group" style="max-width: 120px;">
-                            <label class="db-label">Port</label>
-                            <input type="text" class="db-input" id="dbPort" placeholder="5432" oninput="validateDb()">
-                        </div>
-                    </div>
-
-                    <div class="db-input-group">
-                        <label class="db-label">Nom de la base</label>
-                        <input type="text" class="db-input" id="dbName" placeholder="marketing_data" oninput="validateDb()">
-                    </div>
-
-                    <div class="db-input-row">
-                        <div class="db-input-group">
-                            <label class="db-label">Utilisateur</label>
-                            <input type="text" class="db-input" id="dbUser" placeholder="user" oninput="validateDb()">
-                        </div>
-                        <div class="db-input-group">
-                            <label class="db-label">Mot de passe</label>
-                            <input type="password" class="db-input" id="dbPass" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" oninput="validateDb()">
-                        </div>
-                    </div>
-
-                    <div class="db-input-group">
-                        <label class="db-label">Requete SQL (optionnel)</label>
-                        <input type="text" class="db-input" id="dbQuery" placeholder="SELECT * FROM kpis_marketing WHERE date >= '2026-01-01'">
-                        <div class="db-hint">Laissez vide pour recuperer toutes les donnees. Ou precisez une requete <code>SELECT</code></div>
-                    </div>
-
-                    <div class="db-status-bar" id="dbStatusBar">
-                        <div class="db-status-dot"></div>
-                        <span>Connexion securisee SSL/TLS</span>
-                    </div>
-                </div>
-
-                <button class="btn-submit db-btn" id="submitBtnDb" disabled>
-                    <span id="btnTextDb">Connecter & analyser</span>
-                    <div class="spinner db-spinner" id="btnSpinnerDb"></div>
-                </button>
-            </div>
-
-            <!-- TAB 4: PROMPT LIBRE -->
+            <!-- TAB 3: PROMPT LIBRE -->
             <div class="tab-content" id="contentPrompt">
                 <div class="prompt-form">
                     <div>
@@ -914,7 +809,7 @@
             <div class="status ok" id="statusSuccess">
                 <div class="status-icon">&#10003;</div>
                 <h4>Analyse lancee avec succes</h4>
-                <p>Vos agents IA traitent vos donnees. Vous recevrez le rapport par email et Slack sous quelques minutes.</p>
+                <p>Vos agents IA traitent vos donnees. Vous recevrez le rapport par email sous quelques minutes.</p>
             </div>
 
             <div class="status fail" id="statusError">
@@ -947,7 +842,6 @@
         // ====== CONFIGURATION ======
         const WEBHOOK_URL_FILE = 'https://mn3labs-n8n.com/webhook/agent1-upload';
         const WEBHOOK_URL_SHEETS = 'https://mn3labs-n8n.com/webhook/agent1-sheets';
-        const WEBHOOK_URL_DB = 'https://mn3labs-n8n.com/webhook/agent1-database';
         const WEBHOOK_URL_PROMPT = 'https://mn3labs-n8n.com/webhook/agent1-prompt';
         // ===========================
 
@@ -960,13 +854,10 @@
             document.getElementById('tabFile').classList.toggle('active-tab', tab === 'file');
             document.getElementById('tabSheets').classList.toggle('active-tab', tab === 'sheets');
             document.getElementById('tabSheets').classList.toggle('sheets-active', tab === 'sheets');
-            document.getElementById('tabDb').classList.toggle('active-tab', tab === 'db');
-            document.getElementById('tabDb').classList.toggle('db-active', tab === 'db');
             document.getElementById('tabPrompt').classList.toggle('active-tab', tab === 'prompt');
             document.getElementById('tabPrompt').classList.toggle('prompt-active', tab === 'prompt');
             document.getElementById('contentFile').classList.toggle('active', tab === 'file');
             document.getElementById('contentSheets').classList.toggle('active', tab === 'sheets');
-            document.getElementById('contentDb').classList.toggle('active', tab === 'db');
             document.getElementById('contentPrompt').classList.toggle('active', tab === 'prompt');
             resetStatus();
         }
@@ -1116,6 +1007,8 @@
 
             const formData = new FormData();
             formData.append('file', selectedFile);
+            const filePromptValue = document.getElementById('filePrompt').value.trim();
+            if (filePromptValue) formData.append('prompt', filePromptValue);
             await submitAnalysis(WEBHOOK_URL_FILE, formData);
 
             btnText.textContent = 'Lancer l\'analyse';
@@ -1136,11 +1029,13 @@
             btnText.textContent = 'Connexion...';
             spinner.classList.add('show');
 
+            const sheetsPromptValue = document.getElementById('sheetsPrompt').value.trim();
             const payload = JSON.stringify({
                 source: 'google_sheets',
                 spreadsheetId: match[1],
                 sheetName: sheetsTab.value || 'Sheet1',
-                range: document.getElementById('sheetsRange').value || ''
+                range: document.getElementById('sheetsRange').value || '',
+                prompt: sheetsPromptValue || ''
             });
 
             await submitAnalysis(WEBHOOK_URL_SHEETS, payload);
@@ -1150,51 +1045,6 @@
             btn.disabled = false;
         });
 
-        // === DATABASE ===
-        const dbType = document.getElementById('dbType');
-        const dbHost = document.getElementById('dbHost');
-        const dbPort = document.getElementById('dbPort');
-        const dbName = document.getElementById('dbName');
-        const dbUser = document.getElementById('dbUser');
-        const dbPass = document.getElementById('dbPass');
-        const dbQuery = document.getElementById('dbQuery');
-        const dbStatusBar = document.getElementById('dbStatusBar');
-        const submitBtnDb = document.getElementById('submitBtnDb');
-
-        const defaultPorts = { postgresql: '5432', mysql: '3306', mssql: '1433', mongodb: '27017' };
-
-        function validateDb() {
-            const valid = dbType.value && dbHost.value.trim() && dbName.value.trim() && dbUser.value.trim() && dbPass.value.trim();
-            submitBtnDb.disabled = !valid;
-            if (dbType.value && !dbPort.value) dbPort.placeholder = defaultPorts[dbType.value] || '5432';
-            if (valid) { dbStatusBar.classList.add('show'); } else { dbStatusBar.classList.remove('show'); }
-        }
-
-        submitBtnDb.addEventListener('click', async () => {
-            const btn = submitBtnDb;
-            const btnText = document.getElementById('btnTextDb');
-            const spinner = document.getElementById('btnSpinnerDb');
-            btn.disabled = true;
-            btnText.textContent = 'Connexion...';
-            spinner.classList.add('show');
-
-            const payload = JSON.stringify({
-                source: 'database',
-                dbType: dbType.value,
-                host: dbHost.value.trim(),
-                port: dbPort.value.trim() || defaultPorts[dbType.value],
-                database: dbName.value.trim(),
-                user: dbUser.value.trim(),
-                password: dbPass.value,
-                query: dbQuery.value.trim() || ''
-            });
-
-            await submitAnalysis(WEBHOOK_URL_DB, payload);
-
-            btnText.textContent = 'Connecter & analyser';
-            spinner.classList.remove('show');
-            btn.disabled = false;
-        });
         // === PROMPT LIBRE ===
         const promptText = document.getElementById('promptText');
         const promptCount = document.getElementById('promptCount');
