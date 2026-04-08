@@ -1124,7 +1124,12 @@
             simulateProgress();
 
             try {
-                const response = await fetch(url, { method: 'POST', body });
+                const isFormData = body instanceof FormData;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+                    body
+                });
                 progressBar.style.width = '100%';
                 progressLabel.textContent = 'Termine !';
                 progressPct.textContent = '100%';
