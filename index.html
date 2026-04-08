@@ -1133,7 +1133,7 @@
 
             const sheetsPromptValue = document.getElementById('sheetsPrompt').value.trim();
             const payload = JSON.stringify({
-                source: 'google_sheets',
+                source: 'sheets',
                 spreadsheetId: match[1],
                 sheetName: sheetsTab.value || 'Sheet1',
                 range: document.getElementById('sheetsRange').value || '',
