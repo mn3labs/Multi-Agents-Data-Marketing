@@ -802,8 +802,11 @@
 
                     <div class="sheets-input-row">
                         <div class="sheets-input-group">
-                            <label class="sheets-label">Nom de la feuille</label>
-                            <input type="text" class="sheets-input" id="sheetsTab" placeholder="Sheet1" value="Sheet1">
+                            <label class="sheets-label">Feuille</label>
+                            <select class="sheets-input" id="sheetsTab" disabled>
+                                <option value="">-- Collez l'URL ci-dessus --</option>
+                            </select>
+                            <div class="sheets-hint" id="sheetsTabHint" style="display:none;"></div>
                         </div>
                         <div class="sheets-input-group">
                             <label class="sheets-label">Plage (optionnel)</label>
@@ -1009,21 +1012,66 @@
         const sheetsPreviewDetail = document.getElementById('sheetsPreviewDetail');
         const submitBtnSheets = document.getElementById('submitBtnSheets');
 
-        function validateSheetsUrl() {
+        let sheetsLoadingTabs = false;
+
+        async function validateSheetsUrl() {
             const url = sheetsUrl.value.trim();
             const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-            if (match) {
-                sheetsPreview.classList.add('show');
-                sheetsPreviewName.textContent = 'Sheet ID: ' + match[1].substring(0, 16) + '...';
-                sheetsPreviewDetail.textContent = 'Feuille: ' + (sheetsTab.value || 'Sheet1');
-                submitBtnSheets.disabled = false;
-            } else {
+            if (match && !sheetsLoadingTabs) {
+                sheetsLoadingTabs = true;
+                sheetsTab.disabled = true;
+                sheetsTab.innerHTML = '<option value="">Chargement des feuilles...</option>';
+                const hint = document.getElementById('sheetsTabHint');
+                hint.style.display = 'none';
+
+                try {
+                    const resp = await fetch('https://mn3labs-n8n.com/webhook/get-sheets-tabs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ spreadsheetId: match[1] })
+                    });
+                    const data = await resp.json();
+                    const names = data.sheets || [];
+
+                    if (names.length > 0) {
+                        sheetsTab.innerHTML = names.map((n, i) =>
+                            `<option value="${n}" ${i === 0 ? 'selected' : ''}>${n}</option>`
+                        ).join('');
+                        sheetsTab.disabled = false;
+                        hint.textContent = names.length + ' feuille(s) detectee(s)';
+                        hint.style.display = 'block';
+                        sheetsPreview.classList.add('show');
+                        sheetsPreviewName.textContent = 'Sheet ID: ' + match[1].substring(0, 16) + '...';
+                        sheetsPreviewDetail.textContent = 'Feuille: ' + names[0];
+                        submitBtnSheets.disabled = false;
+                    } else {
+                        sheetsTab.innerHTML = '<option value="">Aucune feuille trouvee</option>';
+                        hint.textContent = 'Verifiez que la Google Sheet est partagee';
+                        hint.style.display = 'block';
+                    }
+                } catch (err) {
+                    sheetsTab.innerHTML = '<option value="Feuille 1">Feuille 1 (par defaut)</option>';
+                    sheetsTab.disabled = false;
+                    hint.textContent = 'Detection auto echouee, nom par defaut utilise';
+                    hint.style.display = 'block';
+                    sheetsPreview.classList.add('show');
+                    sheetsPreviewName.textContent = 'Sheet ID: ' + match[1].substring(0, 16) + '...';
+                    sheetsPreviewDetail.textContent = 'Feuille: Feuille 1';
+                    submitBtnSheets.disabled = false;
+                }
+                sheetsLoadingTabs = false;
+            } else if (!match) {
                 sheetsPreview.classList.remove('show');
                 submitBtnSheets.disabled = true;
+                sheetsTab.innerHTML = '<option value="">-- Collez l\'URL ci-dessus --</option>';
+                sheetsTab.disabled = true;
+                document.getElementById('sheetsTabHint').style.display = 'none';
             }
         }
 
-        sheetsTab.addEventListener('input', validateSheetsUrl);
+        sheetsTab.addEventListener('change', function() {
+            sheetsPreviewDetail.textContent = 'Feuille: ' + sheetsTab.value;
+        });
 
         // === SHARED ===
         const progressContainer = document.getElementById('progressContainer');
