@@ -328,6 +328,9 @@
             text-transform: uppercase; letter-spacing: 0.5px;
             background: rgba(0, 255, 200, 0.03);
         }
+        .fmt-selectable { cursor: pointer; transition: all 0.2s ease; }
+        .fmt-selectable:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 255, 200, 0.08); }
+        .fmt-selectable.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0, 255, 200, 0.15); box-shadow: 0 0 10px rgba(0, 255, 200, 0.2); }
 
         /* === GOOGLE SHEETS FORM === */
         .sheets-form { padding: 8px 0; }
@@ -756,13 +759,14 @@
                     </div>
                     <h3>Deposez votre fichier ici</h3>
                     <p class="sub">ou <span class="browse" id="browseLink">parcourir vos fichiers</span></p>
+                    <p class="sub" style="margin-top:8px; font-size:11px; color:var(--text-muted);">Choisissez le type de fichier :</p>
                     <div class="formats">
-                        <span class="fmt">.csv</span>
-                        <span class="fmt">.xlsx</span>
-                        <span class="fmt">.xls</span>
+                        <span class="fmt fmt-selectable active" data-accept=".csv" onclick="selectFileType(this)">.CSV</span>
+                        <span class="fmt fmt-selectable" data-accept=".xlsx" onclick="selectFileType(this)">.XLSX</span>
+                        <span class="fmt fmt-selectable" data-accept=".xls" onclick="selectFileType(this)">.XLS</span>
                     </div>
                 </div>
-                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
+                <input type="file" id="fileInput" accept=".csv" hidden>
 
                 <div class="file-card" id="filePreview">
                     <div class="file-card-icon">
@@ -958,10 +962,28 @@
             return (bytes / 1048576).toFixed(1) + ' MB';
         }
 
+        function selectFileType(el) {
+            document.querySelectorAll('.fmt-selectable').forEach(f => f.classList.remove('active'));
+            el.classList.add('active');
+            const accept = el.getAttribute('data-accept');
+            document.getElementById('fileInput').setAttribute('accept', accept);
+            // Reset file if already selected with wrong type
+            if (selectedFile) {
+                const ext = '.' + selectedFile.name.split('.').pop().toLowerCase();
+                if (ext !== accept && !(accept === '.xlsx' && ext === '.xlsx') && !(accept === '.xls' && ext === '.xls')) {
+                    selectedFile = null;
+                    document.getElementById('filePreview').classList.remove('show');
+                    submitBtnFile.disabled = true;
+                    document.getElementById('fileInput').value = '';
+                }
+            }
+        }
+
         function handleFile(file) {
-            const validExts = ['.csv', '.xlsx', '.xls'];
+            const activeFormat = document.querySelector('.fmt-selectable.active');
+            const acceptedExt = activeFormat ? activeFormat.getAttribute('data-accept') : '.csv';
             const ext = '.' + file.name.split('.').pop().toLowerCase();
-            if (!validExts.includes(ext)) { alert('Format non supporte. Utilisez CSV, XLSX ou XLS.'); return; }
+            if (ext !== acceptedExt) { alert('Format non supporté. Veuillez sélectionner un fichier ' + acceptedExt.toUpperCase() + '.'); return; }
             if (file.size > 50 * 1024 * 1024) { alert('Fichier trop volumineux. Max : 50 MB'); return; }
             selectedFile = file;
             fileName.textContent = file.name;
