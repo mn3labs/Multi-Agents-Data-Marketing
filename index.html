@@ -1448,17 +1448,22 @@
             if (state) el.classList.add(state);
         }
 
-        function resetAgents() {
+        function resetAgents(hide) {
             ['agent-sql', 'agent-clean', 'agent-analyze', 'agent-report'].forEach(id => setAgentStep(id, 'waiting'));
             ['conn-1', 'conn-2', 'conn-3'].forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('active', 'done'); });
-            document.getElementById('agentsProgress').classList.remove('show');
+            if (hide !== false) {
+                const p = document.getElementById('agentsProgress');
+                p.classList.remove('show');
+                p.style.display = 'none';
+            }
         }
 
         function simulateAgents() {
             const agentsPanel = document.getElementById('agentsProgress');
+            resetAgents(false);
             agentsPanel.classList.add('show');
-            resetAgents();
-            agentsPanel.classList.add('show');
+            agentsPanel.style.display = 'block';
+            setTimeout(() => agentsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
 
             const steps = [
                 { agent: 'agent-sql', conn: null, delay: 500 },
