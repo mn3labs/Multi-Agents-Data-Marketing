@@ -1458,53 +1458,77 @@
             }
         }
 
-        function simulateAgents() {
+        const SUPABASE_URL = 'https://dgvlbaqcculqwjflftoi.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndmxiYXFjY3VscXdqZmxmdG9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1ODIzNDYsImV4cCI6MjA5MTE1ODM0Nn0.Wg6h_ZavXnNy-8Okkfv61qPf_U-pwb1pQghF6BGOCnI';
+        let currentSessionId = null;
+        let pollingInterval = null;
+
+        function generateSessionId() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
+        const STEP_MAP = {
+            nova_active:  { agent: 'agent-sql',     state: 'active', conn: null,    pct: 10, label: 'Lecture de la base...', pipe: 'pipe-upload' },
+            nova_done:    { agent: 'agent-sql',     state: 'done',   conn: 'conn-1', pct: 30, label: 'Extraction des donnees...', pipe: 'pipe-extract' },
+            hexa_active:  { agent: 'agent-clean',   state: 'active', conn: null,    pct: 35, label: 'Nettoyage IA en cours...', pipe: 'pipe-anomaly' },
+            hexa_done:    { agent: 'agent-clean',   state: 'done',   conn: 'conn-2', pct: 55, label: 'Nettoyage termine', pipe: 'pipe-anomaly' },
+            axon_active:  { agent: 'agent-analyze', state: 'active', conn: null,    pct: 60, label: 'Analyse par IA...', pipe: 'pipe-analysis' },
+            axon_done:    { agent: 'agent-analyze', state: 'done',   conn: 'conn-3', pct: 80, label: 'Analyse terminee', pipe: 'pipe-analysis' },
+            lyra_active:  { agent: 'agent-report',  state: 'active', conn: null,    pct: 85, label: 'Generation du rapport Notion...', pipe: 'pipe-report' },
+            lyra_done:    { agent: 'agent-report',  state: 'done',   conn: null,    pct: 95, label: 'Rapport genere !', pipe: 'pipe-report' },
+        };
+
+        async function pollProgress(sessionId) {
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/rest/v1/nexadata_progress?session_id=eq.${sessionId}&order=created_at.asc`,
+                    { headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON } }
+                );
+                if (!res.ok) return;
+                const rows = await res.json();
+                const seen = new Set();
+                rows.forEach(r => seen.add(r.step));
+
+                for (const [stepName, cfg] of Object.entries(STEP_MAP)) {
+                    if (seen.has(stepName)) {
+                        setAgentStep(cfg.agent, cfg.state);
+                        if (cfg.conn) setConnector(cfg.conn, 'done');
+                        progressBar.style.width = cfg.pct + '%';
+                        progressLabel.textContent = cfg.label;
+                        progressPct.textContent = cfg.pct + '%';
+                        setPipelineStep(cfg.pipe);
+                    }
+                }
+
+                if (seen.has('lyra_done')) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            } catch (e) { /* silently retry next interval */ }
+        }
+
+        function startPolling(sessionId) {
             const agentsPanel = document.getElementById('agentsProgress');
             resetAgents(false);
             agentsPanel.classList.add('show');
             agentsPanel.style.display = 'block';
             setTimeout(() => agentsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
 
-            const steps = [
-                { agent: 'agent-sql', conn: null, delay: 500 },
-                { agent: 'agent-sql', conn: 'conn-1', delay: 1800, done: true },
-                { agent: 'agent-clean', conn: null, delay: 2000 },
-                { agent: 'agent-clean', conn: 'conn-2', delay: 4000, done: true },
-                { agent: 'agent-analyze', conn: null, delay: 4200 },
-                { agent: 'agent-analyze', conn: 'conn-3', delay: 6500, done: true },
-                { agent: 'agent-report', conn: null, delay: 6700 },
-                { agent: 'agent-report', conn: null, delay: 8500, done: true },
-            ];
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(() => pollProgress(sessionId), 3000);
+        }
 
-            steps.forEach(({ agent, conn, delay, done }) => {
-                setTimeout(() => {
-                    if (done) {
-                        setAgentStep(agent, 'done');
-                        if (conn) setConnector(conn, 'done');
-                    } else {
-                        setAgentStep(agent, 'active');
-                        if (conn) setConnector(conn, 'active');
-                    }
-                }, delay);
-            });
+        function simulateAgents() {
+            startPolling(currentSessionId);
         }
 
         function simulateProgress() {
-            const stages = [
-                { pct: 20, label: 'Envoi des donnees...', pipe: 'pipe-upload', delay: 800 },
-                { pct: 40, label: 'Extraction des donnees...', pipe: 'pipe-extract', delay: 1500 },
-                { pct: 60, label: 'Detection d\'anomalies...', pipe: 'pipe-anomaly', delay: 2000 },
-                { pct: 80, label: 'Analyse par IA...', pipe: 'pipe-analysis', delay: 2500 },
-                { pct: 95, label: 'Generation du rapport...', pipe: 'pipe-report', delay: 3000 },
-            ];
-            stages.forEach(({ pct, label, pipe, delay }) => {
-                setTimeout(() => {
-                    progressBar.style.width = pct + '%';
-                    progressLabel.textContent = label;
-                    progressPct.textContent = pct + '%';
-                    setPipelineStep(pipe);
-                }, delay);
-            });
+            progressBar.style.width = '5%';
+            progressLabel.textContent = 'Demarrage...';
+            progressPct.textContent = '5%';
         }
 
         async function submitAnalysis(url, body) {
@@ -1521,10 +1545,16 @@
                     headers: isFormData ? {} : { 'Content-Type': 'application/json' },
                     body
                 });
+                if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+                // Final poll to get last steps
+                if (currentSessionId) await pollProgress(currentSessionId);
                 progressBar.style.width = '100%';
                 progressLabel.textContent = 'Termine !';
                 progressPct.textContent = '100%';
                 if (response.ok) {
+                    // Mark all agents done on completion
+                    ['agent-sql', 'agent-clean', 'agent-analyze', 'agent-report'].forEach(id => setAgentStep(id, 'done'));
+                    ['conn-1', 'conn-2', 'conn-3'].forEach(id => setConnector(id, 'done'));
                     setTimeout(() => {
                         statusSuccess.classList.add('show');
                         setPipelineStep('pipe-report');
@@ -1534,6 +1564,7 @@
                     throw new Error('Erreur serveur: ' + response.status);
                 }
             } catch (err) {
+                if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
                 progressBar.style.width = '100%';
                 progressBar.style.background = 'linear-gradient(90deg, var(--red), #ff6688)';
                 statusError.classList.add('show');
@@ -1661,9 +1692,11 @@
 
             document.getElementById('successMessage').textContent = 'NexaData nettoie votre base, analyse les donnees et genere le rapport sur Notion. Les donnees propres seront disponibles sur Looker.';
 
+            currentSessionId = generateSessionId();
             const payload = JSON.stringify({
                 source: 'database',
-                prompt: text
+                prompt: text,
+                session_id: currentSessionId
             });
 
             await submitAnalysis(WEBHOOK_URL_DB, payload);
