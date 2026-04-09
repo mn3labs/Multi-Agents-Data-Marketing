@@ -1481,6 +1481,38 @@
             lyra_done:    { agent: 'agent-report',  state: 'done',   conn: null,    pct: 95, label: 'Rapport genere !', pipe: 'pipe-report' },
         };
 
+        function startPolling(sessionId) {
+            const agentsPanel = document.getElementById('agentsProgress');
+            resetAgents(false);
+            agentsPanel.classList.add('show');
+            agentsPanel.style.display = 'block';
+            setTimeout(() => agentsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(() => pollProgress(sessionId), 3000);
+        }
+
+        function simulateAgents() {
+            startPolling(currentSessionId);
+        }
+
+        function simulateProgress() {
+            progressBar.style.width = '5%';
+            progressLabel.textContent = 'Demarrage...';
+            progressPct.textContent = '5%';
+        }
+
+        function finishSuccess() {
+            progressBar.style.width = '100%';
+            progressLabel.textContent = 'Termine !';
+            progressPct.textContent = '100%';
+            ['agent-sql', 'agent-clean', 'agent-analyze', 'agent-report'].forEach(id => setAgentStep(id, 'done'));
+            ['conn-1', 'conn-2', 'conn-3'].forEach(id => setConnector(id, 'done'));
+            statusSuccess.classList.add('show');
+            setPipelineStep('pipe-report');
+            document.querySelectorAll('.pipe-node').forEach(n => n.classList.add('done'));
+        }
+
         async function pollProgress(sessionId) {
             try {
                 const res = await fetch(
@@ -1506,29 +1538,9 @@
                 if (seen.has('lyra_done')) {
                     clearInterval(pollingInterval);
                     pollingInterval = null;
+                    finishSuccess();
                 }
             } catch (e) { /* silently retry next interval */ }
-        }
-
-        function startPolling(sessionId) {
-            const agentsPanel = document.getElementById('agentsProgress');
-            resetAgents(false);
-            agentsPanel.classList.add('show');
-            agentsPanel.style.display = 'block';
-            setTimeout(() => agentsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
-
-            if (pollingInterval) clearInterval(pollingInterval);
-            pollingInterval = setInterval(() => pollProgress(sessionId), 3000);
-        }
-
-        function simulateAgents() {
-            startPolling(currentSessionId);
-        }
-
-        function simulateProgress() {
-            progressBar.style.width = '5%';
-            progressLabel.textContent = 'Demarrage...';
-            progressPct.textContent = '5%';
         }
 
         async function submitAnalysis(url, body) {
@@ -1536,39 +1548,61 @@
             progressContainer.classList.add('show');
             progressBar.style.background = 'linear-gradient(90deg, var(--cyan), var(--green))';
             simulateProgress();
-            if (currentTab === 'db') simulateAgents();
 
-            try {
-                const isFormData = body instanceof FormData;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: isFormData ? {} : { 'Content-Type': 'application/json' },
-                    body
-                });
-                if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
-                // Final poll to get last steps
-                if (currentSessionId) await pollProgress(currentSessionId);
-                progressBar.style.width = '100%';
-                progressLabel.textContent = 'Termine !';
-                progressPct.textContent = '100%';
-                if (response.ok) {
-                    // Mark all agents done on completion
-                    ['agent-sql', 'agent-clean', 'agent-analyze', 'agent-report'].forEach(id => setAgentStep(id, 'done'));
-                    ['conn-1', 'conn-2', 'conn-3'].forEach(id => setConnector(id, 'done'));
-                    setTimeout(() => {
-                        statusSuccess.classList.add('show');
-                        setPipelineStep('pipe-report');
-                        document.querySelectorAll('.pipe-node').forEach(n => n.classList.add('done'));
-                    }, 500);
-                } else {
-                    throw new Error('Erreur serveur: ' + response.status);
+            const isDbMode = currentTab === 'db' && currentSessionId;
+
+            if (isDbMode) {
+                // DB mode: fire webhook, don't wait for response — polling drives the UI
+                simulateAgents();
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body
+                    });
+                    if (!response.ok) {
+                        // Stop polling, show error
+                        if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+                        progressBar.style.width = '100%';
+                        progressBar.style.background = 'linear-gradient(90deg, var(--red), #ff6688)';
+                        statusError.classList.add('show');
+                        errorMessage.textContent = 'Erreur serveur: ' + response.status;
+                    }
+                    // If response.ok, do nothing here — polling handles completion via lyra_done
+                } catch (err) {
+                    if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = 'linear-gradient(90deg, var(--red), #ff6688)';
+                    statusError.classList.add('show');
+                    errorMessage.textContent = err.message || 'Une erreur est survenue.';
                 }
-            } catch (err) {
-                if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
-                progressBar.style.width = '100%';
-                progressBar.style.background = 'linear-gradient(90deg, var(--red), #ff6688)';
-                statusError.classList.add('show');
-                errorMessage.textContent = err.message || 'Une erreur est survenue.';
+            } else {
+                // Non-DB modes: original behavior (await response for completion)
+                try {
+                    const isFormData = body instanceof FormData;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+                        body
+                    });
+                    progressBar.style.width = '100%';
+                    progressLabel.textContent = 'Termine !';
+                    progressPct.textContent = '100%';
+                    if (response.ok) {
+                        setTimeout(() => {
+                            statusSuccess.classList.add('show');
+                            setPipelineStep('pipe-report');
+                            document.querySelectorAll('.pipe-node').forEach(n => n.classList.add('done'));
+                        }, 500);
+                    } else {
+                        throw new Error('Erreur serveur: ' + response.status);
+                    }
+                } catch (err) {
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = 'linear-gradient(90deg, var(--red), #ff6688)';
+                    statusError.classList.add('show');
+                    errorMessage.textContent = err.message || 'Une erreur est survenue.';
+                }
             }
         }
 
