@@ -1507,6 +1507,7 @@
             progressContainer.classList.add('show');
             progressBar.style.background = 'linear-gradient(90deg, var(--cyan), var(--green))';
             simulateProgress();
+            if (currentTab === 'db') simulateAgents();
 
             try {
                 const isFormData = body instanceof FormData;
@@ -1654,7 +1655,6 @@
             spinner.classList.add('show');
 
             document.getElementById('successMessage').textContent = 'NexaData nettoie votre base, analyse les donnees et genere le rapport sur Notion. Les donnees propres seront disponibles sur Looker.';
-            simulateAgents();
 
             const payload = JSON.stringify({
                 source: 'database',
