@@ -1016,6 +1016,8 @@
                 <span class="pipe-arrow">&#9654;</span>
                 <div class="pipe-node" id="pipe-anomaly">Anomaly</div>
                 <span class="pipe-arrow">&#9654;</span>
+                <div class="pipe-node" id="pipe-kpis">KPIs</div>
+                <span class="pipe-arrow">&#9654;</span>
                 <div class="pipe-node" id="pipe-analysis">Analysis</div>
                 <span class="pipe-arrow">&#9654;</span>
                 <div class="pipe-node" id="pipe-report">Report</div>
@@ -1449,7 +1451,7 @@
 
         function setPipelineStep(stepId) {
             document.querySelectorAll('.pipe-node').forEach(n => n.classList.remove('active', 'done'));
-            const steps = ['pipe-upload', 'pipe-extract', 'pipe-anomaly', 'pipe-analysis', 'pipe-report'];
+            const steps = ['pipe-upload', 'pipe-extract', 'pipe-anomaly', 'pipe-kpis', 'pipe-analysis', 'pipe-report'];
             const idx = steps.indexOf(stepId);
             steps.forEach((s, i) => {
                 const el = document.getElementById(s);
@@ -1504,8 +1506,8 @@
             nova_done:    { agent: 'agent-sql',     state: 'done',   conn: 'conn-1', pct: 30, label: 'Extraction des donnees...', pipe: 'pipe-extract' },
             hexa_active:  { agent: 'agent-clean',   state: 'active', conn: null,    pct: 35, label: 'Nettoyage IA en cours...', pipe: 'pipe-anomaly' },
             hexa_done:    { agent: 'agent-clean',   state: 'done',   conn: 'conn-2', pct: 45, label: 'Nettoyage termine', pipe: 'pipe-anomaly' },
-            sigma_active: { agent: 'agent-sigma',   state: 'active', conn: null,    pct: 50, label: 'Calcul des KPIs...', pipe: 'pipe-anomaly' },
-            sigma_done:   { agent: 'agent-sigma',   state: 'done',   conn: 'conn-sigma', pct: 55, label: 'KPIs calcules', pipe: 'pipe-analysis' },
+            sigma_active: { agent: 'agent-sigma',   state: 'active', conn: null,    pct: 50, label: 'Calcul des KPIs...', pipe: 'pipe-kpis' },
+            sigma_done:   { agent: 'agent-sigma',   state: 'done',   conn: 'conn-sigma', pct: 55, label: 'KPIs calcules', pipe: 'pipe-kpis' },
             axon_active:  { agent: 'agent-analyze', state: 'active', conn: null,    pct: 60, label: 'Analyse par IA...', pipe: 'pipe-analysis' },
             axon_done:    { agent: 'agent-analyze', state: 'done',   conn: 'conn-3', pct: 80, label: 'Analyse terminee', pipe: 'pipe-analysis' },
             lyra_active:  { agent: 'agent-report',  state: 'active', conn: null,    pct: 85, label: 'Generation du rapport Notion...', pipe: 'pipe-report' },
