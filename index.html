@@ -1124,6 +1124,35 @@
 
                 <div class="agent-connector" id="conn-2">&#9654;</div>
 
+                <!-- Agent Sigma: Calcul KPIs deterministe -->
+                <div class="agent-card waiting" id="agent-sigma">
+                    <div class="agent-avatar" style="background: radial-gradient(circle at 30% 30%, rgba(0,255,200,0.12), transparent);">
+                        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="sigma-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity="0.3"/><stop offset="100%" stop-color="currentColor" stop-opacity="0.05"/></linearGradient>
+                            </defs>
+                            <!-- Tete robot calculateur -->
+                            <rect x="22" y="12" width="56" height="42" rx="10" fill="url(#sigma-g)" stroke="currentColor" stroke-width="2"/>
+                            <!-- Yeux ecrans -->
+                            <rect x="32" y="24" width="14" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                            <rect x="54" y="24" width="14" height="10" rx="3" fill="currentColor" opacity="0.6"/>
+                            <!-- Symbole Sigma sur le front -->
+                            <text x="50" y="50" text-anchor="middle" fill="currentColor" font-size="14" font-weight="bold" opacity="0.8">&#931;</text>
+                            <!-- Corps -->
+                            <path d="M28 60h44c4 0 6 2 6 6v18c0 4-2 6-6 6H28c-4 0-6-2-6-6V66c0-4 2-6 6-6z" fill="url(#sigma-g)" stroke="currentColor" stroke-width="1.5"/>
+                            <!-- Lignes de calcul sur le corps -->
+                            <line x1="32" y1="68" x2="68" y2="68" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                            <line x1="32" y1="74" x2="58" y2="74" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                            <line x1="32" y1="80" x2="64" y2="80" stroke="currentColor" stroke-width="1" opacity="0.2"/>
+                        </svg>
+                    </div>
+                    <div class="agent-name">SIGMA</div>
+                    <div class="agent-role">Calcul KPIs</div>
+                    <div class="agent-status">--</div>
+                </div>
+
+                <div class="agent-connector" id="conn-sigma">&#9654;</div>
+
                 <!-- Agent 3: AXON - Robot futuriste Analyste -->
                 <div class="agent-card waiting" id="agent-analyze">
                     <div class="agent-avatar" style="background: radial-gradient(circle at 30% 30%, rgba(255,45,120,0.12), transparent);">
@@ -1474,7 +1503,9 @@
             nova_active:  { agent: 'agent-sql',     state: 'active', conn: null,    pct: 10, label: 'Lecture de la base...', pipe: 'pipe-upload' },
             nova_done:    { agent: 'agent-sql',     state: 'done',   conn: 'conn-1', pct: 30, label: 'Extraction des donnees...', pipe: 'pipe-extract' },
             hexa_active:  { agent: 'agent-clean',   state: 'active', conn: null,    pct: 35, label: 'Nettoyage IA en cours...', pipe: 'pipe-anomaly' },
-            hexa_done:    { agent: 'agent-clean',   state: 'done',   conn: 'conn-2', pct: 55, label: 'Nettoyage termine', pipe: 'pipe-anomaly' },
+            hexa_done:    { agent: 'agent-clean',   state: 'done',   conn: 'conn-2', pct: 45, label: 'Nettoyage termine', pipe: 'pipe-anomaly' },
+            sigma_active: { agent: 'agent-sigma',   state: 'active', conn: null,    pct: 50, label: 'Calcul des KPIs...', pipe: 'pipe-anomaly' },
+            sigma_done:   { agent: 'agent-sigma',   state: 'done',   conn: 'conn-sigma', pct: 55, label: 'KPIs calcules', pipe: 'pipe-analysis' },
             axon_active:  { agent: 'agent-analyze', state: 'active', conn: null,    pct: 60, label: 'Analyse par IA...', pipe: 'pipe-analysis' },
             axon_done:    { agent: 'agent-analyze', state: 'done',   conn: 'conn-3', pct: 80, label: 'Analyse terminee', pipe: 'pipe-analysis' },
             lyra_active:  { agent: 'agent-report',  state: 'active', conn: null,    pct: 85, label: 'Generation du rapport Notion...', pipe: 'pipe-report' },
